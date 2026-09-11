@@ -1,0 +1,26 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.0"}}
+ :aliases
+ {:spec {:extra-paths ["spec"]
+         :extra-deps {speclj/speclj {:mvn/version "3.12.2"}}
+         :main-opts ["-m" "speclj.main" "-c"]}
+  :cov {:extra-paths ["spec"]
+        :extra-deps {cloverage/cloverage {:mvn/version "1.2.4"}
+                     speclj/speclj {:mvn/version "3.12.2"}
+                     quil/quil {:mvn/version "4.3.1563"}}
+        :main-opts ["-m" "speclj.cloverage"
+                    "-c" "--tag" "~no-mutate" "spec"
+                    "--" "-p" "src" "-s" "spec" "--lcov"]}
+  :crap {:extra-deps {io.github.unclebob/crap4clj
+                      {:git/url "https://github.com/unclebob/crap4clj.git"
+                       :git/sha "e068673a852a8142323ac680fa3366de65bc2227"}}
+         :main-opts ["-m" "crap4clj.core"]}
+  :mutate {:extra-paths ["spec"]
+           :extra-deps {io.github.unclebob/clj-mutate
+                        {:git/url "https://github.com/unclebob/clj-mutate.git"
+                         :git/sha "e798457eb9cb933c0428cbd77a9262cb94f8d9ba"}
+                        org.clojure/tools.reader {:mvn/version "1.4.2"}
+                        speclj/speclj {:mvn/version "3.12.2"}}
+           :main-opts ["-m" "clj-mutate.core"]}
+  :run {:extra-deps {quil/quil {:mvn/version "4.3.1563"}}
+        :main-opts ["-m" "othello.core"]}}}
