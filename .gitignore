@@ -6,3 +6,6 @@
 target/
 *.class
 .DS_Store
+.shadow-cljs/
+public/js/
+node_modules/

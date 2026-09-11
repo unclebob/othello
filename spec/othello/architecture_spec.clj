@@ -73,5 +73,5 @@
                 lib (required-libs ns-form)
                 :when (quil-lib? lib)]
             (str ns-name))]
-      (should= ["othello.ui.draw" "othello.ui.sketch"]
+      (should= ["othello.ui.draw" "othello.ui.sketch" "othello.ui.web"]
                (vec (sort (distinct quil-owners)))))))

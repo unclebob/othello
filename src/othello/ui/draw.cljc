@@ -1,6 +1,6 @@
 (ns othello.ui.draw
   (:require [clojure.string :as str]
-            [quil.core :as q]
+            [quil.core :as q :include-macros true]
             [othello.board :as board]
             [othello.ui.layout :as layout]
             [othello.ui.view :as view]))
@@ -110,7 +110,9 @@
 
 (defn- thinking-dot [sidebar]
   (when (:thinking? sidebar)
-    (let [pulse (Math/abs (Math/sin (/ (:think-frames sidebar) 8.0)))]
+    (let [angle (/ (:think-frames sidebar) 8.0)
+          pulse #?(:clj (Math/abs (Math/sin angle))
+                   :cljs (js/Math.abs (js/Math.sin angle)))]
       (q/fill 232 196 72 (int (+ 80 (* 140 pulse))))
       (q/ellipse (+ layout/sidebar-left 320) 118 12 12))))
 

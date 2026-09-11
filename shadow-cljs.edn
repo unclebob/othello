@@ -1,0 +1,11 @@
+{:deps {:aliases [:web]}
+ :nrepl {:port 7888}
+ :dev-http {8080 {:root "public"
+                  :push-state "/index.html"}}
+ :builds
+ {:app {:target :browser
+        :output-dir "public/js"
+        :asset-path "/js"
+        :modules {:main {:init-fn othello.ui.web/init}}
+        :js-options {:resolve {"p5" {:target :global :global "p5"}}}
+        :devtools {:after-load othello.ui.web/init}}}}

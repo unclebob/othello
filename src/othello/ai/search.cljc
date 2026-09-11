@@ -10,7 +10,8 @@
 (def default-endgame 12)
 
 (defn now-ms []
-  (System/currentTimeMillis))
+  #?(:clj (System/currentTimeMillis)
+     :cljs (.now js/Date)))
 
 (defn ordered-moves [board player]
   (->> (rules/legal-moves board player)
