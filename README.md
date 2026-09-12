@@ -62,8 +62,10 @@ src/othello/
   ai/eval.cljc       positional + mobility evaluation
   ai/search.cljc     negamax / alpha-beta / iterative deepening
   ui/layout.cljc     geometry and hit testing
+  ui/anim.cljc       flip/think/pass frame policy
   ui/view.cljc       view-model (no Quil)
   ui/events.cljc     clicks, keys, animation, computer-turn protocol
+  ui/host.cljc       shared fun-mode loop and input
   ui/draw.cljc       Quil painting (JVM Processing or browser p5)
   ui/sketch.clj      desktop window and async AI
   ui/web.cljs        browser sketch

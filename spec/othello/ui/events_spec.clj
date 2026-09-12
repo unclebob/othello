@@ -3,9 +3,9 @@
             [othello.board :as board]
             [othello.game :as game]
             [othello.rules :as rules]
+            [othello.ui.anim :as anim]
             [othello.ui.events :as events]
             [othello.ui.layout :as layout]
-            [othello.ui.view :as view]
             [othello.spec-helper :refer [click-square click-button drain
                                          drain-animation parse-board play-at
                                          let-computer-play]]))
@@ -57,10 +57,10 @@
   (it "flashes an illegal click and clears the flash"
     (let [state (click-square (ui) 0 0)]
       (should= [0 0] (:flash-pos state))
-      (should= 12 (:flash-frames state))
+      (should= anim/flash-frames (:flash-frames state))
       (should= 0 (:flash-frames (events/tick (assoc state :flash-frames 0))))
-      (let [ticked (nth (iterate events/tick state) 12)
-            mid (nth (iterate events/tick state) 11)]
+      (let [ticked (nth (iterate events/tick state) anim/flash-frames)
+            mid (nth (iterate events/tick state) (dec anim/flash-frames))]
         (should= 1 (:flash-frames mid))
         (should= [0 0] (:flash-pos mid))
         (should= 0 (:flash-frames ticked))
@@ -91,7 +91,7 @@
   (it "commits the move when the flip animation finishes"
     (let [done (drain-animation (click-square (ui) 2 3))]
       (should= :awaiting-computer (:phase done))
-      (should= 18 (:settle-frames done))
+      (should= anim/settle-frames (:settle-frames done))
       (should= 0 (:pass-frames done))
       (should= board/black (board/cell (:board (:game done)) 2 3))
       (should= board/black (board/cell (:board (:game done)) 3 3))))
@@ -101,7 +101,7 @@
       (should-not (events/awaiting-computer? state))
       (should-not (events/awaiting-computer? (assoc state :settle-frames 1)))
       (should (events/awaiting-computer? (play-at (ui) 2 3)))
-      (should= 0 (:settle-frames (nth (iterate events/tick state) 18)))
+      (should= 0 (:settle-frames (nth (iterate events/tick state) anim/settle-frames)))
       (should= 0 (:settle-frames (events/tick (assoc state :settle-frames 0))))))
 
   (context "computer thinking"
@@ -123,7 +123,7 @@
     (it "does not keep the thinking lamp on when the returned move is illegal"
       (let [thinking (assoc (ui)
                        :phase :computer-thinking
-                       :think-frames view/min-think-frames
+                       :think-frames anim/min-think-frames
                        :ai-job :old-job)
             next (events/on-frame thinking {:job-done? true :job-result [0 0]})]
         (should= :computer-thinking (:phase next))
@@ -136,9 +136,9 @@
             waited (nth (iterate #(events/on-frame % {:job-done? true
                                                       :job-result [2 2]})
                                  thinking)
-                        view/min-think-frames)]
+                        anim/min-think-frames)]
         (should= :computer-thinking (:phase waited))
-        (should= view/min-think-frames (:think-frames waited))
+        (should= anim/min-think-frames (:think-frames waited))
         (let [done (events/on-frame waited {:job-done? true :job-result [2 2]})]
           (should= :animating (:phase done))
           (should= 2 (:row (:animation done)))
@@ -197,16 +197,16 @@
 
     (it "advances from a pass notice to the human"
       (let [state (assoc (ui) :phase :pass-notice :pass-frames 0)
-            mid (nth (iterate events/tick state) 89)]
+            mid (nth (iterate events/tick state) (dec anim/pass-display-frames))]
         (should= :pass-notice (:phase mid))
-        (should= 89 (:pass-frames mid))
+        (should= (dec anim/pass-display-frames) (:pass-frames mid))
         (should= :awaiting-human (:phase (events/tick mid)))
         (should= 0 (:pass-frames (events/tick mid)))))
 
     (it "advances from a pass notice to the computer"
       (let [state (assoc (events/fresh-ui board/white greedy)
                     :phase :pass-notice
-                    :pass-frames 89)]
+                    :pass-frames (dec anim/pass-display-frames))]
         (should= :awaiting-computer (:phase (events/tick state)))))
 
     (it "undoes a completed human-and-computer turn"

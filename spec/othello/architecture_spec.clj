@@ -35,11 +35,14 @@
         (= s "othello.ai")
         (str/starts-with? s "othello.ai."))))
 
+(defn- quil-adapter-ns? [ns-name]
+  (contains? #{"othello.ui.draw" "othello.ui.sketch" "othello.ui.web"}
+             (str ns-name)))
+
 (defn- ui-logic-ns? [ns-name]
   (let [s (str ns-name)]
-    (or (= s "othello.ui.layout")
-        (= s "othello.ui.view")
-        (= s "othello.ui.events"))))
+    (and (str/starts-with? s "othello.ui")
+         (not (quil-adapter-ns? ns-name)))))
 
 (defn- quil-lib? [lib]
   (str/starts-with? (str lib) "quil."))
@@ -61,8 +64,12 @@
   (it "keeps the game domain free of Quil and UI adapters"
     (should= [] (violations domain-ns? #(or (quil-lib? %) (ui-lib? %)))))
 
-  (it "keeps layout, view, and events free of Quil"
+  (it "keeps UI logic free of Quil"
     (should= [] (violations ui-logic-ns? quil-lib?)))
+
+  (it "keeps the view-model independent of the event state machine"
+    (should= [] (violations #(= % 'othello.ui.view) #(= % 'othello.ui.events)))
+    (should= [] (violations #(= % 'othello.ui.events) #(= % 'othello.ui.view))))
 
   (it "confines Processing to draw and sketch"
     (let [quil-owners

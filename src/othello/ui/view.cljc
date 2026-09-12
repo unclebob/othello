@@ -1,26 +1,13 @@
 (ns othello.ui.view
   (:require [othello.board :as board]
             [othello.game :as game]
+            [othello.ui.anim :as anim]
             [othello.ui.layout :as layout]))
 
-(def place-frames 8)
-(def flip-stagger 4)
-(def hold-frames 10)
-(def min-think-frames 15)
-(def pass-display-frames 90)
-
-(defn flips-shown [anim]
-  (let [raw (quot (- (:frame anim) place-frames) flip-stagger)]
-    (max 0 raw)))
-
-(defn animation-done? [anim]
-  (>= (:frame anim)
-      (+ place-frames (* flip-stagger (count (:flips anim))) hold-frames)))
-
-(defn animated-board [board anim]
-  (let [player (:player anim)
-        placed (board/place board (:row anim) (:col anim) player)
-        shown (take (flips-shown anim) (:flips anim))]
+(defn animated-board [board animation]
+  (let [player (:player animation)
+        placed (board/place board (:row animation) (:col animation) player)
+        shown (take (anim/flips-shown animation) (:flips animation))]
     (reduce (fn [b [r c]] (board/place b r c player))
             placed
             shown)))

@@ -10,6 +10,21 @@
 (def sidebar-left 710)
 (def disc-radius 30)
 
+(def sidebar-layout
+  {:title-y 40
+   :status-y 96
+   :thinking-x (+ sidebar-left 320)
+   :thinking-y 118
+   :black-score-y 170
+   :white-score-y 230
+   :score-disc-dx 132
+   :score-count-dx 168
+   :you-are-y 300
+   :computer-is-y 330
+   :help-y 380
+   :keys-y 404
+   :moves-y 430})
+
 (defn square-left [col]
   (+ board-left (* col square-size)))
 

@@ -3,6 +3,7 @@
             [othello.board :as board]
             [othello.game :as game]
             [othello.ui.events :as events]
+            [othello.ui.anim :as anim]
             [othello.ui.layout :as layout]
             [othello.ui.view :as view]
             [othello.spec-helper :refer [click-square drain]]))
@@ -61,28 +62,18 @@
     (let [state (click-square (ui) 2 3)
           anim (:animation state)]
       (should= :animating (:phase state))
-      (should= 0 (view/flips-shown anim))
+      (should= 0 (anim/flips-shown anim))
       (should= board/black (board/cell (view/displayed-board state) 2 3))
       (should= board/white (board/cell (view/displayed-board state) 3 3))))
 
   (it "reveals the first flipped disc after the place delay"
     (let [state (click-square (ui) 2 3)
-          later (assoc-in state [:animation :frame] view/place-frames)]
-      (should= 0 (view/flips-shown (:animation later)))
+          later (assoc-in state [:animation :frame] anim/place-frames)]
+      (should= 0 (anim/flips-shown (:animation later)))
       (let [flipping (assoc-in state [:animation :frame]
-                               (+ view/place-frames view/flip-stagger))]
-        (should= 1 (view/flips-shown (:animation flipping)))
+                               (+ anim/place-frames anim/flip-stagger))]
+        (should= 1 (anim/flips-shown (:animation flipping)))
         (should= board/black (board/cell (view/displayed-board flipping) 3 3)))))
-
-  (it "finishes after the hold frames"
-    (let [anim {:flips [[3 3]] :frame 0}]
-      (should-not (view/animation-done? anim))
-      (should (view/animation-done?
-                (assoc anim :frame (+ view/place-frames
-                                      view/flip-stagger
-                                      view/hold-frames))))
-      (should-not (view/animation-done? {:flips [[3 3] [3 4]] :frame 25}))
-      (should (view/animation-done? {:flips [[3 3] [3 4]] :frame 26}))))
 
   (it "reports scores from the displayed board"
     (should= {:black 2 :white 2} (view/score-view (ui)))

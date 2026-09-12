@@ -2,8 +2,8 @@
   (:require [othello.board :as board]
             [othello.game :as game]
             [othello.rules :as rules]
-            [othello.ui.layout :as layout]
-            [othello.ui.view :as view]))
+            [othello.ui.anim :as anim]
+            [othello.ui.layout :as layout]))
 
 (defn fresh-ui
   ([human ai-fn]
@@ -82,7 +82,7 @@
       :game game
       :animation nil
       :ai-job nil
-      :settle-frames 18
+      :settle-frames anim/settle-frames
       :pass-frames 0
       :phase (phase-after game))))
 
@@ -90,7 +90,7 @@
   (if-let [anim (:animation state)]
     (let [frame (inc (:frame anim))
           next-anim (assoc anim :frame frame)]
-      (if (view/animation-done? next-anim)
+      (if (anim/animation-done? next-anim)
         (complete-animation state)
         (assoc state :animation next-anim)))
     state))
@@ -118,7 +118,7 @@
 (defn- tick-pass [state]
   (if (= :pass-notice (:phase state))
     (let [n (inc (:pass-frames state))]
-      (if (>= n view/pass-display-frames)
+      (if (>= n anim/pass-display-frames)
         (begin-next-turn state)
         (assoc state :pass-frames n)))
     state))
@@ -144,7 +144,7 @@
 
       (and (= :computer-thinking (:phase s))
            job-done?
-           (>= (:think-frames s) view/min-think-frames)
+           (>= (:think-frames s) anim/min-think-frames)
            job-result)
       (deliver-computer-move s job-result)
 
@@ -161,7 +161,7 @@
       state)))
 
 (defn- flash [state row col]
-  (assoc state :flash-pos [row col] :flash-frames 12))
+  (assoc state :flash-pos [row col] :flash-frames anim/flash-frames))
 
 (defn- legal-here? [state row col]
   (contains? (set (game/legal-positions (:game state))) [row col]))

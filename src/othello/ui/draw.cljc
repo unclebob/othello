@@ -84,16 +84,18 @@
             (- layout/board-left 26)
             (second (layout/square-center row 0)))))
 
-(defn- score-block [label count x y disc-player]
-  (q/fill 230 230 224)
-  (q/text-align :left :center)
-  (q/text-size 20)
-  (q/text label x y)
-  (draw-disc-shape (+ x 132) y (view/disc-fill disc-player) 255)
-  (q/fill 230 230 224)
-  (q/text-align :left :center)
-  (q/text-size 28)
-  (q/text (str count) (+ x 168) y))
+(defn- score-block [label count y disc-player]
+  (let [{:keys [score-disc-dx score-count-dx]} layout/sidebar-layout
+        x layout/sidebar-left]
+    (q/fill 230 230 224)
+    (q/text-align :left :center)
+    (q/text-size 20)
+    (q/text label x y)
+    (draw-disc-shape (+ x score-disc-dx) y (view/disc-fill disc-player) 255)
+    (q/fill 230 230 224)
+    (q/text-align :left :center)
+    (q/text-size 28)
+    (q/text (str count) (+ x score-count-dx) y)))
 
 (defn- draw-button [button]
   (q/no-stroke)
@@ -112,9 +114,10 @@
   (when (:thinking? sidebar)
     (let [angle (/ (:think-frames sidebar) 8.0)
           pulse #?(:clj (Math/abs (Math/sin angle))
-                   :cljs (js/Math.abs (js/Math.sin angle)))]
+                   :cljs (js/Math.abs (js/Math.sin angle)))
+          {:keys [thinking-x thinking-y]} layout/sidebar-layout]
       (q/fill 232 196 72 (int (+ 80 (* 140 pulse))))
-      (q/ellipse (+ layout/sidebar-left 320) 118 12 12))))
+      (q/ellipse thinking-x thinking-y 12 12))))
 
 (defn- draw-moves [moves]
   (q/fill 180 188 178)
@@ -122,29 +125,32 @@
   (q/text-size 14)
   (q/text (str "Moves: " (str/join "  " (take-last 12 moves)))
           layout/sidebar-left
-          430))
+          (:moves-y layout/sidebar-layout)))
 
 (defn draw-sidebar [sidebar]
-  (q/fill 236 236 228)
-  (q/text-align :left :top)
-  (q/text-size 36)
-  (q/text (:title sidebar) layout/sidebar-left 40)
-  (q/text-size 18)
-  (q/fill 210 216 204)
-  (q/text (:status sidebar) layout/sidebar-left 96)
-  (thinking-dot sidebar)
-  (score-block "Black" (:black-score sidebar) layout/sidebar-left 170 board/black)
-  (score-block "White" (:white-score sidebar) layout/sidebar-left 230 board/white)
-  (q/fill 210 216 204)
-  (q/text-align :left :center)
-  (q/text-size 16)
-  (q/text (str "You are " (:you-are sidebar)) layout/sidebar-left 300)
-  (q/text (str "Computer is " (:computer-is sidebar)) layout/sidebar-left 330)
-  (q/text "N new   U undo   H hints" layout/sidebar-left 380)
-  (q/text "1 play black   2 play white" layout/sidebar-left 404)
-  (draw-moves (:moves sidebar))
-  (doseq [button (:buttons sidebar)]
-    (draw-button button)))
+  (let [{:keys [title-y status-y black-score-y white-score-y
+                you-are-y computer-is-y help-y keys-y]} layout/sidebar-layout
+        x layout/sidebar-left]
+    (q/fill 236 236 228)
+    (q/text-align :left :top)
+    (q/text-size 36)
+    (q/text (:title sidebar) x title-y)
+    (q/text-size 18)
+    (q/fill 210 216 204)
+    (q/text (:status sidebar) x status-y)
+    (thinking-dot sidebar)
+    (score-block "Black" (:black-score sidebar) black-score-y board/black)
+    (score-block "White" (:white-score sidebar) white-score-y board/white)
+    (q/fill 210 216 204)
+    (q/text-align :left :center)
+    (q/text-size 16)
+    (q/text (str "You are " (:you-are sidebar)) x you-are-y)
+    (q/text (str "Computer is " (:computer-is sidebar)) x computer-is-y)
+    (q/text "N new   U undo   H hints" x help-y)
+    (q/text "1 play black   2 play white" x keys-y)
+    (draw-moves (:moves sidebar))
+    (doseq [button (:buttons sidebar)]
+      (draw-button button))))
 
 (defn apply-cursor [cursor]
   (if (= cursor :hand)

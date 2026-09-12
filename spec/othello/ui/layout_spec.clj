@@ -64,4 +64,21 @@
 
     (it "names the five controls"
       (should= [:new-game :undo :play-black :play-white :hints]
-               (map :id (layout/buttons))))))
+               (map :id (layout/buttons)))))
+
+  (context "sidebar"
+    (it "stacks copy above the buttons"
+      (let [s layout/sidebar-layout
+            top-button (apply min (map :y (layout/buttons)))]
+        (should (< (:title-y s) (:status-y s)))
+        (should (< (:status-y s) (:black-score-y s)))
+        (should (< (:black-score-y s) (:white-score-y s)))
+        (should (< (:white-score-y s) (:you-are-y s)))
+        (should (< (:you-are-y s) (:computer-is-y s)))
+        (should (< (:computer-is-y s) (:help-y s)))
+        (should (< (:help-y s) (:keys-y s)))
+        (should (< (:keys-y s) (:moves-y s)))
+        (should (< (:moves-y s) top-button))
+        (should (< (:score-disc-dx s) (:score-count-dx s)))
+        (should (> (:thinking-x s) layout/sidebar-left))
+        (should= (+ layout/sidebar-left 320) (:thinking-x s))))))
