@@ -14,11 +14,11 @@
     :pointer nil
     :animation nil
     :flash-pos nil
-    :flash-frames (int 0)
-    :hints? (boolean true)
-    :settle-frames (int 0)
-    :pass-frames (int 0)
-    :think-frames (int 0)
+    :flash-frames 0
+    :hints? true
+    :settle-frames 0
+    :pass-frames 0
+    :think-frames 0
     :ai ai-fn
     :ai-job nil})
   ([human]
@@ -38,7 +38,7 @@
 (defn- begin-computer-thinking [state]
   (assoc state
     :phase :computer-thinking
-    :think-frames (int 0)
+    :think-frames 0
     :ai-job nil))
 
 (defn- order-flips [row col flips]
@@ -58,9 +58,9 @@
                     :col col
                     :player player
                     :flips (vec (order-flips row col captured))
-                    :frame (int 0)}
+                    :frame 0}
         :flash-pos nil
-        :flash-frames (int 0))
+        :flash-frames 0)
       state)))
 
 (defn start-animation [state pos]
@@ -83,7 +83,7 @@
       :animation nil
       :ai-job nil
       :settle-frames 18
-      :pass-frames (int 0)
+      :pass-frames 0
       :phase (phase-after game))))
 
 (defn- tick-animation [state]
@@ -110,7 +110,7 @@
 
 (defn- begin-next-turn [state]
   (assoc state
-    :pass-frames (int 0)
+    :pass-frames 0
     :phase (if (game/human? (:game state))
              :awaiting-human
              :awaiting-computer)))
@@ -185,7 +185,7 @@
     :animation nil
     :phase :awaiting-human
     :flash-pos nil
-    :flash-frames (int 0)))
+    :flash-frames 0))
 
 (defn- revert-turn [state]
   (let [game (game/undo-turn (:game state))]
@@ -194,8 +194,8 @@
       :ai-job nil
       :animation nil
       :flash-pos nil
-      :flash-frames (int 0)
-      :think-frames (int 0)
+      :flash-frames 0
+      :think-frames 0
       :phase (if (= :over (:status game))
                :game-over
                (if (game/human? game)

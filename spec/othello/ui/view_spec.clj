@@ -126,8 +126,7 @@
       (should= "White" (:computer-is bar))
       (should= "Othello" (:title bar))
       (should-not (:thinking? bar))
-      (should= 0 (:think-frames bar))
-      (should (:enabled (first (:buttons bar))))))
+      (should= 0 (:think-frames bar))))
 
   (it "marks the last move during and after animation"
     (let [animating (click-square (ui) 2 3)]

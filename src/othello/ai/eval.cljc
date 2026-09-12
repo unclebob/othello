@@ -21,7 +21,7 @@
     (cond
       (= here player) weight
       (= here (board/opponent player)) (- weight)
-      :else (- weight weight))))
+      :else 0)))
 
 (defn positional [board player]
   (reduce + 0

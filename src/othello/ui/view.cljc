@@ -140,8 +140,7 @@
                 (:label button))]
     (assoc button
       :label label
-      :hovered hovered
-      :enabled (boolean true))))
+      :hovered hovered)))
 
 (defn sidebar [state]
   (let [game (:game state)

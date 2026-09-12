@@ -11,7 +11,7 @@
     :status :in-play
     :last-move nil
     :last-flips []
-    :passed? (boolean false)
+    :passed? false
     :winner nil
     :moves []
     :history []}))
@@ -42,7 +42,7 @@
     :status :over
     :last-move pos
     :last-flips flips
-    :passed? (boolean false)
+    :passed? false
     :winner (rules/winner board)))
 
 (defn- after-move [game board player pos flips]
@@ -55,13 +55,13 @@
                      :to-move opponent
                      :last-move pos
                      :last-flips flips
-                     :passed? (boolean false))
+                     :passed? false)
       player-can (assoc game
                    :board board
                    :to-move player
                    :last-move pos
                    :last-flips flips
-                   :passed? (boolean true))
+                   :passed? true)
       :else (finish game board pos flips))))
 
 (defn play [game row col]
