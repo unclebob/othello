@@ -82,18 +82,27 @@
     nil
     (disc-fill disc)))
 
-(defn square-model [state row col]
-  (let [board (displayed-board state)
+(defn- square-frame [state]
+  (let [hover (hover-square state)
+        legal (legal-set state)
+        human-turn? (= :awaiting-human (:phase state))]
+    {:board (displayed-board state)
+     :hover hover
+     :last (last-move-of state)
+     :legal legal
+     :ghost? (and human-turn? (contains? legal hover))
+     :hints? (:hints? state)
+     :human-turn? human-turn?
+     :flash-pos (:flash-pos state)
+     :to-move (:to-move (:game state))}))
+
+(defn- square-model [frame row col]
+  (let [{:keys [board hover last legal ghost? hints? human-turn?
+                flash-pos to-move]} frame
         disc (board/cell board row col)
         pos [row col]
-        hover (hover-square state)
-        last (last-move-of state)
-        legal (contains? (legal-set state) pos)
-        flash? (= pos (:flash-pos state))
-        [cx cy] (layout/square-center row col)
-        show-hint (and (:hints? state)
-                       legal
-                       (= :awaiting-human (:phase state)))]
+        flash? (= pos flash-pos)
+        [cx cy] (layout/square-center row col)]
     {:row row
      :col col
      :x (layout/square-left col)
@@ -104,15 +113,16 @@
      :fill (square-fill row col flash?)
      :disc disc
      :disc-fill (disc-paint disc)
-     :ghost (and (hovered-legal? state) (= pos hover))
-     :ghost-fill (disc-fill (:to-move (:game state)))
-     :hint show-hint
+     :ghost (and ghost? (= pos hover))
+     :ghost-fill (disc-fill to-move)
+     :hint (and hints? human-turn? (contains? legal pos))
      :last-move? (= pos last)
      :flash? flash?}))
 
 (defn squares [state]
-  (map (fn [[row col]] (square-model state row col))
-       (board/squares)))
+  (let [frame (square-frame state)]
+    (map (fn [[row col]] (square-model frame row col))
+         (board/squares))))
 
 (defn move-list [state]
   (map (fn [m] (layout/algebraic (:row m) (:col m)))
@@ -151,5 +161,5 @@
    :cursor (if (hovered-legal? state) :hand :arrow)})
 
 ;; clj-mutate-manifest-begin
-;; {:version 2, :hash-algorithm :sha256-source-v1, :verified? true, :tested-at "2026-09-10T15:30:50.634327-05:00", :module-hash "ded204b85ae966ada531af79ad43ba5da0a98049cc8dd9a247e26efbd8a8a9ff", :provenance {:mutation-rules-version "3", :test-command "clj -M:spec --tag ~no-mutate", :test-roots ["spec"], :test-profile-fingerprint "4a118879430717b1bd26e1af198359854cfcb88dcd8f5ce51f8f471a0d516e8e"}, :forms [{:id "form/0/ns", :kind "ns", :line 1, :end-line 4, :hash "137b63f6c0503d27e964db160e2eb4953b0372e739d1100f930e08b0c3b07829"} {:id "def/place-frames", :kind "def", :line 6, :end-line 6, :hash "f96e3c60a2925b8cee9b418ddec3f49bc608607779d8c207eb5cc74941e78d20"} {:id "def/flip-stagger", :kind "def", :line 7, :end-line 7, :hash "21335fba39896815f59e2e51d7358de1cb63b7b6386667997e132b0f4509f0a7"} {:id "def/hold-frames", :kind "def", :line 8, :end-line 8, :hash "ebcf69ff871defff5b39ac25a6ec7535d55bbbea89ce3867db488a5b5516c0d8"} {:id "def/min-think-frames", :kind "def", :line 9, :end-line 9, :hash "a7a6bb949dc92e912c4e1657b330a451a87291989a13fcf92fddd72a8f31ab97"} {:id "def/pass-display-frames", :kind "def", :line 10, :end-line 10, :hash "78b356eb6973a67d7ea4047cf76b5ad9c0e52eaf5071f0e021a43cb523debc4d"} {:id "defn/flips-shown", :kind "defn", :line 12, :end-line 14, :hash "8753168826d333dded1368248121915c5eaf93c583b5359619225ed6a76059ff"} {:id "defn/animation-done?", :kind "defn", :line 16, :end-line 18, :hash "88bf5755c74bb38be0fe0e4ba9c830c8df1b7c51bb2b68b328c1feefa8c18b90"} {:id "defn/animated-board", :kind "defn", :line 20, :end-line 26, :hash "b2e8c1e3bac3c372f7e49e560702cdc9d590d7cbbed8899e5955884379540e58"} {:id "defn/displayed-board", :kind "defn", :line 28, :end-line 31, :hash "3408ce1f64fe4328eae024b2005899ba54dde52ffb44208289f1cae0cfe5b74e"} {:id "defn/winner-text", :kind "defn", :line 33, :end-line 39, :hash "cfed17a28be7182bee4c43a2707f9f10d1e01553166524d47464d4501c25d1b4"} {:id "defn/passer-name", :kind "defn", :line 41, :end-line 44, :hash "b085ac91964a589bbbce48160d7460ce78eafead60337e1209a3a54d74ca1d58"} {:id "defn/status-text", :kind "defn", :line 46, :end-line 55, :hash "d820249380f0ae52fd83273188cf0c0db1d4516c9968a1110aa4b405b6206bcb"} {:id "defn/score-view", :kind "defn", :line 57, :end-line 60, :hash "550932c423b0fce4c642211530fc9d3497d374a01493146277854551ca9f5eb8"} {:id "defn/hover-square", :kind "defn", :line 62, :end-line 65, :hash "a40af8caa95f5f153c6ee3a349136abc57fe7b8ff279798affcde8c0a564f298"} {:id "defn/legal-set", :kind "defn", :line 67, :end-line 68, :hash "08927010ceb4a0e269427424d849307b983ae1908638b338684c68a77e7ec510"} {:id "defn/hovered-legal?", :kind "defn", :line 70, :end-line 74, :hash "ce1929f5e825abac824d59518910466b3cb40d88320752fc8dd4c72dcdb10cd9"} {:id "defn/last-move-of", :kind "defn", :line 76, :end-line 79, :hash "64794726968714ac48a9418c145180b24e4f28a9cdd8a4de0c62c22cee9e4343"} {:id "defn/square-fill", :kind "defn", :line 81, :end-line 86, :hash "d3fd06e8e9489ed19e4ec1d281b8dffa308de31a871f7ddd3a057baffbc3fe98"} {:id "defn/disc-fill", :kind "defn", :line 88, :end-line 91, :hash "72cc0a24e560c79b5616d391e277751d708e0cfbae5249bfeb083ab8ccbe2808"} {:id "defn/disc-paint", :kind "defn", :line 93, :end-line 96, :hash "e2c257576267285e5fcf8f5290656ea7e93566af73ccfca905a23a56c78b3e4b"} {:id "defn/square-model", :kind "defn", :line 98, :end-line 124, :hash "779c97cada593b68b27ce1f6221053840a445978e8dcc252189c4682ae05065f"} {:id "defn/squares", :kind "defn", :line 126, :end-line 128, :hash "6d7e97bdf65ed700f23cb0889170dab33db81ed1849abf8bfc2234066224c2b4"} {:id "defn/move-list", :kind "defn", :line 130, :end-line 132, :hash "ee15d4b0f7bd06e89e4a41cb54734a0c4112045906bf15dc9105155d65f79519"} {:id "defn/button-model", :kind "defn", :line 134, :end-line 144, :hash "d10e85e11477d9246e6761739a59a16c7d0db213ad9cc72f64aac637e0a8c344"} {:id "defn/sidebar", :kind "defn", :line 146, :end-line 159, :hash "51cb933d9488955141ff0bc02210a9346126cb48f5ab416cf856446885989396"} {:id "defn/view-model", :kind "defn", :line 161, :end-line 165, :hash "b465e6e2c5bce1d6df7fa8dcfdda2a54165d92a9e41595a5725e7e8a8c4597c1"}]}
+;; {:version 2, :hash-algorithm :sha256-source-v1, :verified? false, :tested-at "2026-09-12T08:46:24.69556-05:00", :module-hash "0e3c55a694fd785e35551fff1854e02828fbbd868eecefa4766af0357259d49f", :provenance {:mutation-rules-version "3", :test-command "clj -M:spec --tag ~no-mutate", :test-roots ["spec"], :test-profile-fingerprint "e484b75f66cdd819ebbd386b124280a03f7445a7a2c6b2346fec4e8f0f72c0d8"}, :forms [{:id "form/0/ns", :kind "ns", :line 1, :end-line 5, :hash "3aec376175c9a2b23b3968542aea16a4a63f64ebdfe257ff916b5d4cf5c436cd"} {:id "defn/animated-board", :kind "defn", :line 7, :end-line 13, :hash "e8e292fd8fa650ab5e1875aaeca01a2fdd1c6a67a4feaccc2c69e4c22b913f22"} {:id "defn/displayed-board", :kind "defn", :line 15, :end-line 18, :hash "3408ce1f64fe4328eae024b2005899ba54dde52ffb44208289f1cae0cfe5b74e"} {:id "defn/winner-text", :kind "defn", :line 20, :end-line 26, :hash "cfed17a28be7182bee4c43a2707f9f10d1e01553166524d47464d4501c25d1b4"} {:id "defn/passer-name", :kind "defn", :line 28, :end-line 31, :hash "b085ac91964a589bbbce48160d7460ce78eafead60337e1209a3a54d74ca1d58"} {:id "defn/status-text", :kind "defn", :line 33, :end-line 42, :hash "d820249380f0ae52fd83273188cf0c0db1d4516c9968a1110aa4b405b6206bcb"} {:id "defn/score-view", :kind "defn", :line 44, :end-line 47, :hash "550932c423b0fce4c642211530fc9d3497d374a01493146277854551ca9f5eb8"} {:id "defn/hover-square", :kind "defn", :line 49, :end-line 52, :hash "a40af8caa95f5f153c6ee3a349136abc57fe7b8ff279798affcde8c0a564f298"} {:id "defn/legal-set", :kind "defn", :line 54, :end-line 55, :hash "08927010ceb4a0e269427424d849307b983ae1908638b338684c68a77e7ec510"} {:id "defn/hovered-legal?", :kind "defn", :line 57, :end-line 61, :hash "ce1929f5e825abac824d59518910466b3cb40d88320752fc8dd4c72dcdb10cd9"} {:id "defn/last-move-of", :kind "defn", :line 63, :end-line 66, :hash "64794726968714ac48a9418c145180b24e4f28a9cdd8a4de0c62c22cee9e4343"} {:id "defn/square-fill", :kind "defn", :line 68, :end-line 73, :hash "d3fd06e8e9489ed19e4ec1d281b8dffa308de31a871f7ddd3a057baffbc3fe98"} {:id "defn/disc-fill", :kind "defn", :line 75, :end-line 78, :hash "72cc0a24e560c79b5616d391e277751d708e0cfbae5249bfeb083ab8ccbe2808"} {:id "defn/disc-paint", :kind "defn", :line 80, :end-line 83, :hash "e2c257576267285e5fcf8f5290656ea7e93566af73ccfca905a23a56c78b3e4b"} {:id "defn-/square-frame", :kind "defn-", :line 85, :end-line 97, :hash "452588a141565c6cee1f0cebc13e83647324de98a240e4d6e6a45f01712bb485"} {:id "defn-/square-model", :kind "defn-", :line 99, :end-line 120, :hash "f0f7437932b6d540f99e62315b670ea9a1f95333e13f08a02d0e930eda7f0e4f"} {:id "defn/squares", :kind "defn", :line 122, :end-line 125, :hash "43ec9dd1b5ff1efd4a6a799801ea029128af76a42bbf85af5c105e24e6d056e1"} {:id "defn/move-list", :kind "defn", :line 127, :end-line 129, :hash "ee15d4b0f7bd06e89e4a41cb54734a0c4112045906bf15dc9105155d65f79519"} {:id "defn/button-model", :kind "defn", :line 131, :end-line 140, :hash "1b35d72a6ebea8f4a2c58415035bc95ba6584feabcd2205270cf5befea34a760"} {:id "defn/sidebar", :kind "defn", :line 142, :end-line 155, :hash "51cb933d9488955141ff0bc02210a9346126cb48f5ab416cf856446885989396"} {:id "defn/view-model", :kind "defn", :line 157, :end-line 161, :hash "b465e6e2c5bce1d6df7fa8dcfdda2a54165d92a9e41595a5725e7e8a8c4597c1"}]}
 ;; clj-mutate-manifest-end
