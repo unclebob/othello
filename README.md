@@ -79,6 +79,6 @@ Processing/p5. `spec/othello/architecture_spec.clj` enforces that.
 
 Namespaces map to classes; the UI session is the one object with identity.
 Color is mean function CRAP (`clj -M:crap`); labels are μ / max / σ.
-Class diagrams and a turn sequence live in [`public/uml.html`](public/uml.html).
+Interactive version: [`public/uml.html`](public/uml.html).
 
 ![Object model](public/object-model.png)
