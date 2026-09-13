@@ -74,3 +74,44 @@ src/othello/
 
 The domain does not depend on Quil. Only `draw`, `sketch`, and `web` talk to
 Processing/p5. `spec/othello/architecture_spec.clj` enforces that.
+
+## Object model
+
+Namespaces map to classes; the UI session is the one object with identity.
+Color is mean function CRAP (`clj -M:crap`); labels are μ / max / σ.
+Class diagrams and a turn sequence live in [`public/uml.html`](public/uml.html).
+
+```mermaid
+flowchart TB
+  subgraph adapters ["Adapters  μ 3.1  max 5.8  σ 1.7"]
+    direction LR
+    DesktopApp ~~~ BrowserApp ~~~ Painter ~~~ FutureJob ~~~ TimeoutJob
+  end
+  subgraph app ["UI application  μ 2.1  max 9.0  σ 1.5"]
+    direction LR
+    Host ~~~ Session ~~~ ViewModel ~~~ Layout ~~~ AnimationPolicy
+  end
+  subgraph aiLayer ["AI  μ 2.2  max 4.0  σ 1.3"]
+    direction LR
+    Player ~~~ SearchPlayer ~~~ Evaluator
+  end
+  subgraph domain ["Domain  μ 1.7  max 5.0  σ 1.1"]
+    direction LR
+    Game ~~~ Board ~~~ Rules
+  end
+  adapters --> app
+  app --> aiLayer
+  app --> domain
+  classDef low fill:#1e4a38,stroke:#5fb58a,color:#e8f5ee
+  classDef mid fill:#3d3a18,stroke:#d4c05a,color:#f5f0d8
+  classDef high fill:#4a2818,stroke:#e07a4a,color:#f8e4d8
+  classDef na fill:#24302c,stroke:#6a7e76,color:#9db8a8
+  class Game,Board,Rules,Host,Layout,AnimationPolicy,Player low
+  class Session,ViewModel,SearchPlayer,Evaluator mid
+  class DesktopApp,Painter,FutureJob high
+  class BrowserApp,TimeoutJob na
+  style adapters fill:#2a1610,stroke:#e07a4a,color:#e8c448
+  style app fill:#242010,stroke:#d4c05a,color:#e8c448
+  style aiLayer fill:#242010,stroke:#d4c05a,color:#e8c448
+  style domain fill:#10241c,stroke:#5fb58a,color:#e8c448
+```

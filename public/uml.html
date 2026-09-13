@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Othello — OO model</title>
+  <style>
+    :root {
+      --bg: #161c20;
+      --panel: #1a2428;
+      --ink: #ecece4;
+      --muted: #9db8a8;
+      --line: #2a3d36;
+      --gold: #e8c448;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    }
+    body { line-height: 1.45; }
+    header {
+      padding: 40px 24px 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    header p { margin: 0; color: var(--muted); max-width: 46rem; }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+    nav ul {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      list-style: none;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 10px 24px;
+    }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.92rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    nav a:hover { color: var(--gold); background: #24352f; }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px 24px 80px;
+    }
+    section { margin: 36px 0; }
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.45rem;
+      color: var(--gold);
+      font-weight: 600;
+    }
+    h2 + p {
+      color: var(--muted);
+      margin: 0 0 16px;
+      max-width: 46rem;
+    }
+    .diagram {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px 8px;
+      overflow-x: auto;
+    }
+    .diagram svg { display: block; margin: 0 auto; max-width: 100%; }
+    .fail { color: #e8a0a0; padding: 12px 16px; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .legend i {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      margin-right: 6px;
+      vertical-align: -1px;
+    }
+    .legend .low { background: #1e4a38; border: 1px solid #5fb58a; }
+    .legend .mid { background: #3d3a18; border: 1px solid #d4c05a; }
+    .legend .high { background: #4a2818; border: 1px solid #e07a4a; }
+    .legend .na { background: #24302c; border: 1px solid #6a7e76; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      color: #cfe8d8;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Othello as objects</h1>
+    <p>
+      Projection of the current Clojure design onto an OO model.
+      Namespaces become classes; maps become values or a single session entity.
+      The dependency rule does not change.
+    </p>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="#layers">Layers</a></li>
+      <li><a href="#domain">Domain</a></li>
+      <li><a href="#ai">AI</a></li>
+      <li><a href="#ui">UI</a></li>
+      <li><a href="#adapters">Adapters</a></li>
+      <li><a href="#turn">A turn</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section id="layers">
+      <h2>Layers</h2>
+      <p>Same rings as the Clojure modules. Color is mean function CRAP from <code>clj -M:crap</code>. Labels show μ / max / σ (population SD). Adapters run hot because Quil drawing is not exercised by Speclj.</p>
+      <div class="legend">
+        <span><i class="low"></i> ≤ 1.5</span>
+        <span><i class="mid"></i> 1.6 – 2.5</span>
+        <span><i class="high"></i> &gt; 2.5</span>
+        <span><i class="na"></i> not measured (CLJS)</span>
+      </div>
+      <div class="diagram" id="d-layers"></div>
+    </section>
+    <section id="domain">
+      <h2>Domain</h2>
+      <p>
+        Values, not entities. <code>play</code> and <code>undo</code> return a new <code>Game</code>.
+        <code>Rules</code> is policy over a board — legal moves do not live on <code>Board</code>.
+        A disc is a color in a square; there is no <code>Piece</code> class.
+      </p>
+      <div class="diagram" id="d-domain"></div>
+    </section>
+    <section id="ai">
+      <h2>AI</h2>
+      <p>
+        <code>Player</code> is the port that <code>ai/move</code> already is.
+        Desktop and browser inject different search budgets.
+        Tests inject a fake (greedy, first-legal, or nil).
+      </p>
+      <div class="diagram" id="d-ai"></div>
+    </section>
+    <section id="ui">
+      <h2>UI application</h2>
+      <p>
+        <code>Session</code> is the one object with identity — the UI state machine.
+        <code>ViewModel</code> is a read-only projection; it does not tick or play.
+        Buttons and keys share one command table, not a Command hierarchy.
+        Phases stay an enum. A State pattern would be ceremony.
+      </p>
+      <div class="diagram" id="d-ui"></div>
+    </section>
+    <section id="adapters">
+      <h2>Adapters</h2>
+      <p>
+        Quil/p5 stays in the painter and the two apps.
+        The job port is the only difference between desktop <code>future</code>
+        and browser <code>setTimeout</code>.
+      </p>
+      <div class="diagram" id="d-adapters"></div>
+    </section>
+    <section id="turn">
+      <h2>A turn</h2>
+      <p>
+        Click d3. The session starts a flip animation without committing the domain.
+        When the animation finishes, <code>Game.play</code> commits.
+        The host then launches a <code>Player</code> job for White.
+      </p>
+      <div class="diagram" id="d-turn"></div>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "dark",
+      securityLevel: "strict",
+      themeVariables: {
+        darkMode: true,
+        background: "#161c20",
+        primaryColor: "#1e3d32",
+        primaryTextColor: "#ecece4",
+        primaryBorderColor: "#3d8f6e",
+        secondaryColor: "#24352f",
+        tertiaryColor: "#1a2428",
+        lineColor: "#9db8a8",
+        textColor: "#ecece4",
+        mainBkg: "#1e3d32",
+        clusterBkg: "#1a2428",
+        clusterBorder: "#3d8f6e",
+        titleColor: "#e8c448",
+        actorBkg: "#1e3d32",
+        actorBorder: "#3d8f6e",
+        actorTextColor: "#ecece4",
+        signalColor: "#9db8a8",
+        signalTextColor: "#ecece4",
+        labelBoxBkgColor: "#24352f",
+        labelTextColor: "#ecece4",
+        noteBkgColor: "#2a2414",
+        noteTextColor: "#ecece4",
+        noteBorderColor: "#e8c448",
+        activationBkgColor: "#2d5a48",
+        sequenceNumberColor: "#161c20"
+      },
+      flowchart: { curve: "basis", padding: 16 },
+      sequence: { actorMargin: 40, messageMargin: 26 }
+    });
+
+    const diagrams = {
+      layers: `flowchart TB
+  subgraph adapters ["Adapters  μ 3.1  max 5.8  σ 1.7"]
+    direction LR
+    DesktopApp ~~~ BrowserApp ~~~ Painter ~~~ FutureJob ~~~ TimeoutJob
+  end
+  subgraph app ["UI application  μ 2.1  max 9.0  σ 1.5"]
+    direction LR
+    Host ~~~ Session ~~~ ViewModel ~~~ Layout ~~~ AnimationPolicy
+  end
+  subgraph aiLayer ["AI  μ 2.2  max 4.0  σ 1.3"]
+    direction LR
+    Player ~~~ SearchPlayer ~~~ Evaluator
+  end
+  subgraph domain ["Domain  μ 1.7  max 5.0  σ 1.1"]
+    direction LR
+    Game ~~~ Board ~~~ Rules
+  end
+  adapters --> app
+  app --> aiLayer
+  app --> domain
+  classDef low fill:#1e4a38,stroke:#5fb58a,color:#e8f5ee
+  classDef mid fill:#3d3a18,stroke:#d4c05a,color:#f5f0d8
+  classDef high fill:#4a2818,stroke:#e07a4a,color:#f8e4d8
+  classDef na fill:#24302c,stroke:#6a7e76,color:#9db8a8
+  class Game,Board,Rules,Host,Layout,AnimationPolicy,Player low
+  class Session,ViewModel,SearchPlayer,Evaluator mid
+  class DesktopApp,Painter,FutureJob high
+  class BrowserApp,TimeoutJob na
+  style adapters fill:#2a1610,stroke:#e07a4a,color:#e8c448
+  style app fill:#242010,stroke:#d4c05a,color:#e8c448
+  style aiLayer fill:#242010,stroke:#d4c05a,color:#e8c448
+  style domain fill:#10241c,stroke:#5fb58a,color:#e8c448`,
+
+      domain: `classDiagram
+  direction LR
+  class Color {
+    <<enumeration>>
+    Black
+    White
+    Empty
+  }
+  class Square {
+    +int row
+    +int col
+  }
+  class Board {
+    crap μ 1.2 max 2.0 σ 0.4
+    +place(square, color) Board
+    +cell(square) Color
+    +emptyAt(square) bool
+    +count(color) int
+    +opponent(color) Color
+    +inBounds(square) bool
+    +squares() Square[]
+    +initial() Board
+  }
+  class Rules {
+    crap μ 2.0 max 5.0 σ 1.4
+    +flips(board, color, square) Square[]
+    +legal(board, color, square) bool
+    +legalMoves(board, color) Square[]
+    +applyMove(board, color, square) Board
+    +hasMove(board, color) bool
+    +gameOver(board) bool
+    +winner(board) Color
+  }
+  class Move {
+    +Color player
+    +int row
+    +int col
+  }
+  class Game {
+    crap μ 1.8 max 4.0 σ 1.0
+    +Board board
+    +Color toMove
+    +Color human
+    +Square lastMove
+    +Square[] lastFlips
+    +bool passed
+    +play(square) Game
+    +undo() Game
+    +undoTurn() Game
+    +legalPositions() Square[]
+    +score() Score
+    +humanToMove() bool
+  }
+  Game --> Board
+  Game --> Rules
+  Game --> Color
+  Game --> Square
+  Game --> Move
+  Rules --> Board
+  Rules --> Square
+  Board --> Color
+  Board --> Square
+  Move --> Color
+  style Board fill:#1e4a38,stroke:#5fb58a,color:#e8f5ee
+  style Game fill:#3d3a18,stroke:#d4c05a,color:#f5f0d8
+  style Rules fill:#3d3a18,stroke:#d4c05a,color:#f5f0d8`,
+
+      ai: `classDiagram
+  direction TB
+  class Player {
+    <<interface>>
+    crap μ 1.0 max 1.0 σ 0.0
+    +move(board, side, opts) Square
+  }
+  class SearchOptions {
+    +int depth
+    +int maxDepth
+    +int endgame
+    +int timeMs
+  }
+  class Evaluator {
+    crap μ 2.0 max 4.0 σ 1.3
+    +positional(board, side) int
+    +mobility(board, side) int
+    +discDiff(board, side) int
+    +evaluate(board, side) int
+  }
+  class SearchPlayer {
+    crap μ 2.5 max 4.0 σ 1.2
+    +move(board, side, opts) Square
+    +chooseAtDepth(board, side, depth) Square
+    +negamax(board, side, depth, a, b) int
+  }
+  class Board
+  class Rules
+  class Square
+  Player <|.. SearchPlayer
+  SearchPlayer --> Evaluator
+  SearchPlayer --> SearchOptions
+  SearchPlayer --> Rules
+  Evaluator --> Board
+  Evaluator --> Rules
+  Player ..> Square
+  style Player fill:#1e4a38,stroke:#5fb58a,color:#e8f5ee
+  style Evaluator fill:#3d3a18,stroke:#d4c05a,color:#f5f0d8
+  style SearchPlayer fill:#3d3a18,stroke:#d4c05a,color:#f5f0d8`,
+
+      ui: `classDiagram
+  direction TB
+  class Phase {
+    <<enumeration>>
+    AwaitingHuman
+    AwaitingComputer
+    ComputerThinking
+    Animating
+    PassNotice
+    GameOver
+  }
+  class Layout {
+    crap μ 1.3 max 3.0 σ 0.6
+    +squareAt(x, y) Square
+    +buttonAt(x, y) Button
+    +squareCenter(square) Point
+    +algebraic(square) String
+  }
+  class AnimationPolicy {
+    crap μ 1.0 max 1.0 σ 0.0
+    +int placeFrames
+    +int flipStagger
+    +int holdFrames
+    +int minThinkFrames
+    +int passDisplayFrames
+    +flipsShown(anim) int
+    +animationDone(anim) bool
+  }
+  class FlipAnimation {
+    +int row
+    +int col
+    +Color player
+    +Square[] flips
+    +int frame
+  }
+  class Session {
+    crap μ 2.3 max 7.0 σ 1.5
+    +Phase phase
+    +Game game
+    +FlipAnimation animation
+    +bool hints
+    +onClick(x, y)
+    +onMove(x, y)
+    +onKey(key)
+    +onFrame(jobDone, jobResult)
+    +tick()
+    +needsAiJob() bool
+    +handleCommand(id)
+  }
+  class ViewModel {
+    crap μ 2.5 max 9.0 σ 1.8
+    +from(session) ViewModel
+    +SquareView[] squares
+    +SidebarView sidebar
+  }
+  class Host {
+    crap μ 1.3 max 2.0 σ 0.5
+    +initialState(player) Session
+    +onPress(session, event) Session
+    +tick(session, jobPort) Session
+  }
+  class Game
+  class Player
+  class Square
+  Session --> Game
+  Session --> Phase
+  Session --> FlipAnimation
+  Session --> Player
+  Session --> Layout
+  Session --> AnimationPolicy
+  ViewModel --> Layout
+  ViewModel --> AnimationPolicy
+  Host --> Session
+  style Layout fill:#1e4a38,stroke:#5fb58a,color:#e8f5ee
+  style AnimationPolicy fill:#1e4a38,stroke:#5fb58a,color:#e8f5ee
+  style Host fill:#1e4a38,stroke:#5fb58a,color:#e8f5ee
+  style Session fill:#3d3a18,stroke:#d4c05a,color:#f5f0d8
+  style ViewModel fill:#3d3a18,stroke:#d4c05a,color:#f5f0d8`,
+
+      adapters: `classDiagram
+  direction TB
+  class JobPort {
+    <<interface>>
+    +done(session) bool
+    +result(session) Square
+    +launch(session) Session
+  }
+  class FutureJob {
+    +done(session) bool
+    +result(session) Square
+    +launch(session) Session
+  }
+  class TimeoutJob {
+    +done(session) bool
+    +result(session) Square
+    +launch(session) Session
+  }
+  class Painter {
+    crap μ 3.3 max 5.8 σ 1.8
+    +paint(viewModel)
+  }
+  class DesktopApp {
+    crap μ 2.8 max 5.2 σ 1.5
+    +start()
+  }
+  class BrowserApp {
+    crap n/a
+    +init()
+  }
+  class Host
+  class ViewModel
+  class Layout
+  class SearchPlayer
+  JobPort <|.. FutureJob
+  JobPort <|.. TimeoutJob
+  DesktopApp --> Host
+  DesktopApp --> Painter
+  DesktopApp --> FutureJob
+  DesktopApp --> SearchPlayer
+  BrowserApp --> Host
+  BrowserApp --> Painter
+  BrowserApp --> TimeoutJob
+  BrowserApp --> SearchPlayer
+  Painter --> ViewModel
+  Painter --> Layout
+  style DesktopApp fill:#4a2818,stroke:#e07a4a,color:#f8e4d8
+  style Painter fill:#4a2818,stroke:#e07a4a,color:#f8e4d8
+  style FutureJob fill:#4a2818,stroke:#e07a4a,color:#f8e4d8
+  style BrowserApp fill:#24302c,stroke:#6a7e76,color:#9db8a8
+  style TimeoutJob fill:#24302c,stroke:#6a7e76,color:#9db8a8`,
+
+      turn: `sequenceDiagram
+  actor Human
+  participant Host
+  participant Session
+  participant Layout
+  participant Game
+  participant VM as ViewModel
+  participant Painter
+  participant Job as JobPort
+  participant AI as Player
+
+  Human->>Host: click d3
+  Host->>Session: onClick(x, y)
+  Session->>Layout: squareAt(x, y)
+  Layout-->>Session: Square d3
+  Session->>Session: startAnimation
+  Note over Game: Game not yet changed
+
+  loop frames while animating
+    Host->>Session: tick()
+    Session->>Session: FlipAnimation.advance
+    Host->>VM: from(Session)
+    VM-->>Painter: square DTOs
+    Painter->>Painter: paint
+  end
+
+  Session->>Game: play(d3)
+  Game-->>Session: new Game
+  Session->>Session: phase AwaitingComputer
+
+  Host->>Session: needsAiJob?
+  Session-->>Host: true
+  Host->>Job: launch SearchPlayer
+  Job->>AI: move(board, White)
+  AI-->>Job: Square
+  Host->>Session: onFrame done, square
+  Session->>Session: startAnimation for White`
+    };
+
+    for (const [id, src] of Object.entries(diagrams)) {
+      const el = document.getElementById("d-" + id);
+      try {
+        const { svg } = await mermaid.render("m-" + id, src);
+        el.innerHTML = svg;
+      } catch (err) {
+        el.innerHTML = "<div class='fail'>" + id + ": " + String(err).replace(/</g, "&lt;") + "</div>";
+      }
+    }
+  </script>
+</body>
+</html>
